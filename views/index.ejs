@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="mini-dark.min.css">
+	<title></title>
+</head>
+<body>
+
+	<form method='post' action='/login'>
+	  <fieldset>
+		<legend>Login</legend>
+		<div class="row">
+		  <div class="col-sm-12 col-md-6">
+			<label for="username">Username</label>
+			<input type="text" id="Username" placeholder="Username"/>
+		  </div>
+		  <div class="col-sm-12 col-md-6">
+			<label for="password">Password</label>
+			<input type="password" id="password" placeholder="Password"/>
+		  </div>
+			<div class="col-sm-12 col-md-6">
+				<input type="submit" value='login'>
+			</div>
+		</div>
+	  </fieldset>
+	</form>
+
+	<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+	<script src='main.js'></script>
+</body>
+</html>
