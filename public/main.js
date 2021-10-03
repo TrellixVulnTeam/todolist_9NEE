@@ -1,5 +1,11 @@
 let app = new Vue({
-	el: '#app',
+	el: '#todolist',
 	data: {
+		todos: ['first', 'second', 'third']
+	},
+	methods:{
+		addTask: function(){
+			
+		}
 	}
 });
