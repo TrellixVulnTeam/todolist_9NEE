@@ -4,28 +4,22 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="mini-dark.min.css">
+	<link rel="stylesheet" href="style.css">
 	<title></title>
 </head>
 <body>
 
-	<form method='post' action='/login'>
-	  <fieldset>
-		<legend>Login</legend>
-		<div class="row">
-		  <div class="col-sm-12 col-md-6">
-			<label for="username">Username</label>
-			<input type="text" id="Username" placeholder="Username"/>
-		  </div>
-		  <div class="col-sm-12 col-md-6">
-			<label for="password">Password</label>
-			<input type="password" id="password" placeholder="Password"/>
-		  </div>
-			<div class="col-sm-12 col-md-6">
-				<input type="submit" value='login'>
-			</div>
-		</div>
-	  </fieldset>
-	</form>
+	<% if (locals.err_msg != undefined) { %>
+		<p>username or password incorrect</p>
+	<% } %>
+
+	<% if (locals.login) { %>
+		<%- include('login_form') %>
+	<% } %>
+
+	<% if (locals.todos) { %>
+		<%- include('todolist') %>
+	<% } %>
 
 	<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 	<script src='main.js'></script>
