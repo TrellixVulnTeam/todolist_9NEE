@@ -15,6 +15,7 @@
     "express-session": "^1.17.2",
     "mini.css": "^3.0.1",
     "mongodb": "^4.1.2",
+    "multer": "^1.4.3",
     "node-sass": "^6.0.1"
   }
 }

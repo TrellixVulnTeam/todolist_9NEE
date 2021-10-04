@@ -1,9 +1,7 @@
 <div id="todolist">
 	<h1>Todo List</h1>
 	<label for="input_task">Next Task</label> <br>
-	<input id="input_task" type="text"> <br>
-	<label for="input_description">Description</label> <br>
-	<input id="input_description" type="text"> <br>
+	<input id="input_task" type="text" v-model='input_task'> <br>
 	<button id="btn_add" v-on:click='addTask'>add</button>
 	<ol>
 		<li v-for='todo in todos'>

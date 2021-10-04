@@ -3,6 +3,8 @@ let app = express();
 let httpServer = require('http').createServer(app);
 let {MongoClient} = require('mongodb');
 let bodyParser = require('body-parser');
+let multer = require('multer');
+let upload = multer();
 let session = require('express-session');
 
 app.set('views', 'views')
@@ -38,6 +40,11 @@ app.post('/login', (req, res)=>{
 	loginUser(user, req, res).catch(console.dir)
 })
 
+app.post('/addTask', upload.none(), (req, res)=>{
+	let data = req.body;
+	addTask(req, res)
+})
+
 
 httpServer.listen(8000)
 
@@ -46,7 +53,6 @@ httpServer.listen(8000)
 async function loginUser(user, req, res){
 	try{
 		await client.connect()
-		console.log("connected to db")
 		
 		let user_from_db = await client.db('todoapp').collection('users').findOne({'name': user.username, 'password': user.password});
 		if(user_from_db.name == undefined){
@@ -58,10 +64,20 @@ async function loginUser(user, req, res){
 			res.render('index', {todos: true, login: false})
 		}
 	}
-	catch(err){
-		res.render('index', {todos: false, login: true, err_msg: err.message})
+	catch(userNotFound){
+		res.render('index', {todos: false, login: true, err_msg: userNotFound.message})
 	}
 	finally{
 		await client.close()
+	}
+}
+
+async function addTask(req, res){
+	try{
+		let newTask = req.body.task;
+		let user = req.session.user.username;
+
+		await client.connect()
+		
 	}
 }
