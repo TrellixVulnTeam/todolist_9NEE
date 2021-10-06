@@ -26,6 +26,7 @@ let app = new Vue({
 			let xhr = new XMLHttpRequest()
 			let data = new FormData()
 			let self = this;
+			
 			data.append('task', this.input_task)
 			xhr.open('post', '/addTask', true)
 			xhr.send(data)
@@ -47,11 +48,7 @@ let app = new Vue({
 			xhr.send(indexSend)
 			
 			xhr.onload = function(){
-				let remainingTasks = JSON.parse(xhr.respnse).tasks;
 				self.todos = [];
-				for(task of remainingTasks){
-					self.todos.push(task)
-				}
 			}
 		}
 	}

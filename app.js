@@ -52,9 +52,10 @@ app.post('/addTask', upload.none(), (req, res)=>{
 	let task = req.body.task;
 	let username = req.session.user.name;
 	
-	addTask(task, username)
-	getAllTasks(username).then((allTasks)=>{
-		res.send(JSON.stringify(allTasks))
+	addTask(task, username).then(()=>{
+		getAllTasks(username).then((allTasks)=>{
+			res.send(JSON.stringify(allTasks))
+		})
 	})
 })
 
@@ -69,7 +70,15 @@ app.get('/getTodos', (req, res)=>{
 
 /////////////////Remove Task/////////////////
 app.post('/removeTask', (req, res)=>{
-	console.log(req.body)
+	let username = req.session.user.name;
+	let index = req.body.index;
+	
+	removeTask(username, index).then((result)=>{
+		console.log(result)
+		getAllTasks(username).then((allTasks)=>{
+			res.send(JSON.stringify(allTasks))
+		})
+	})
 })
 
 
@@ -116,6 +125,7 @@ async function addTask(task, username){
 		};
 		
 		const result = await collection.updateOne(filter, updateDoc);
+		return result;
 	}
 	catch{
 	}
@@ -149,14 +159,29 @@ async function getAllTasks(username){
 
 async function removeTask(username, index){
 	let name = username;
+	let array_tasks = await getAllTasks(name);
+	array_tasks = array_tasks.tasks;
+	array_tasks.splice(index, 1)
+	console.log(array_tasks)
 	
 	try{
 		await client.connect()
 
+		const db = client.db('todoapp');
+		const collection_tasks = db.collection('tasks');
+		const query = {name: name};
 		const updateDoc = {
-			$pull:{
-				tasks: index
+			$set:{
+				tasks: array_tasks 
 			}
-		}
+		};
+		
+		const remainingTasks = await collection_tasks.updateOne(query, updateDoc);
+		return remainingTasks;
+	}
+	catch{
+	}
+	finally{
+		await client.close()
 	}
 }
