@@ -12,6 +12,7 @@ app.set('view engine', 'ejs')
 
 app.use(express.static('./public'))
 app.use(bodyParser.urlencoded({extended: false}))
+app.use(bodyParser.json())
 app.use(session({
 	secret: "89fdj39f8h378fhwds78fhw87hf3dhf98273hf2w397fwueidafhsdkfh378",
 	resave: true,
@@ -64,6 +65,11 @@ app.get('/getTodos', (req, res)=>{
 	getAllTasks(name).then((allTasks)=>{
 		res.send(JSON.stringify(allTasks))
 	})
+})
+
+/////////////////Remove Task/////////////////
+app.post('/removeTask', (req, res)=>{
+	console.log(req.body)
 })
 
 
@@ -141,3 +147,16 @@ async function getAllTasks(username){
 	}
 }
 
+async function removeTask(username, index){
+	let name = username;
+	
+	try{
+		await client.connect()
+
+		const updateDoc = {
+			$pull:{
+				tasks: index
+			}
+		}
+	}
+}

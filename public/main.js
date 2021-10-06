@@ -37,8 +37,22 @@ let app = new Vue({
 				}
 			}
 		},
-		deleteTask: function(){
+		deleteTask: function(index){
+			let indexSend = JSON.stringify({index: index});
+			let xhr = new XMLHttpRequest();
+			let self = this;
+
+			xhr.open('post', '/removeTask', true)
+			xhr.setRequestHeader('Content-Type', 'application/json')
+			xhr.send(indexSend)
 			
+			xhr.onload = function(){
+				let remainingTasks = JSON.parse(xhr.respnse).tasks;
+				self.todos = [];
+				for(task of remainingTasks){
+					self.todos.push(task)
+				}
+			}
 		}
 	}
 });
