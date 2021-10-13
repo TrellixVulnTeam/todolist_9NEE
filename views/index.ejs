@@ -16,7 +16,15 @@
 	<% if (locals.login) { %>
 		<%- include('login_form') %>
 	<% } %>
+	
+	<% if (locals.userExists) { %>
+		<p>username allready exists<p>
+	<% } %>
 
+	<% if (locals.registration) { %>
+		<%- include('registration') %>
+	<% } %>
+	
 	<% if (locals.todos) { %>
 		<%- include('todolist') %>
 	<% } %>

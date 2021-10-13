@@ -36,7 +36,7 @@ app.get('/', (req, res)=>{
 			res.send(JSON.stringify(allTasks))
 		})
 		
-		res.render('index', {todos: true, login: false})
+		res.render('index', {todos: true, login: false, registration: false})
 	}
 })
 
@@ -79,6 +79,34 @@ app.post('/removeTask', (req, res)=>{
 			res.send(JSON.stringify(allTasks))
 		})
 	})
+})
+
+//////////////Sign Up User//////////////////
+app.get('/registration', (req, res)=>{
+	res.render('index', {todos: false, login: false, registration: true})	
+
+})
+
+app.post('/registration', (req, res)=>{
+	let credentials = req.body;
+	let userFound = false;
+
+	findUser(credentials.name).then((result)=>{
+		if(result != undefined){
+			userFound = true;
+			res.render('index', {todos: false, login: false, registration: true, userExists: true})
+		}
+	})
+	/*
+
+	if(!userFound){
+		registrateUser(credentials)
+		addTaskDoc(credentials.name).then(()=>{
+			req.session.user = {name: credentials.name, password: credentials.password};
+			res.render('index', {todos: true, login: false, registration: false})		
+		})
+	}
+*/
 })
 
 
@@ -178,6 +206,62 @@ async function removeTask(username, index){
 		
 		const remainingTasks = await collection_tasks.updateOne(query, updateDoc);
 		return remainingTasks;
+	}
+	catch{
+	}
+	finally{
+		await client.close()
+	}
+}
+
+async function findUser(username){
+	try{
+		await client.connect()
+
+		const db = client.db('todoapp');
+		const collection_user = db.collection('users');
+		
+		const result = await collection_user.findOne({name: username});
+		return result;
+	}
+	catch{
+	}
+	finally{
+		await client.close()
+	}
+}
+
+async function registrateUser(credentials){
+	let name = credentials.name;
+	let password = credentials.password;
+
+	try{
+		await client.connect()
+
+		const db = client.db('todoapp');
+		const collection_user = db.collection('users');
+		const doc_newUser = {name: name, password: password};
+		
+		result = await collection_user.insertOne(doc_newUser)
+		return result;
+	}
+	catch{
+	}
+	finally{
+		await client.close()
+	}
+}
+
+async function addTaskDoc(username){
+	try{
+		await client.connect()
+
+		const db = client.db('todoapp');
+		const collection_tasks = db.collection('tasks');
+		const doc_task = {name: username, tasks: []};
+
+		await collection_tasks.insertOne(doc_task)
+		return result;
 	}
 	catch{
 	}
