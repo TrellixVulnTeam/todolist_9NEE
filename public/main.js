@@ -34,6 +34,7 @@ let app = new Vue({
 				let newTasks = JSON.parse(xhr.response).tasks;
 				self.todos = [];
 				self.input_task =  "";
+				
 				for(task of newTasks){
 					self.todos.push(task)
 				}
@@ -49,7 +50,12 @@ let app = new Vue({
 			xhr.send(indexSend)
 			
 			xhr.onload = function(){
+				let allTasks = JSON.parse(xhr.response).tasks;
 				self.todos = [];
+				
+				for(task of allTasks){
+					self.todos.push(task)
+				}
 			}
 		}
 	}

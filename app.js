@@ -20,65 +20,76 @@ app.use(session({
 }))
 
 
-let uri = 'mongodb+srv://m001-student:m001-mongodb-basics@sandbox.hprah.mongodb.net/todoapp?retryWrites=true&w=majority';
+let uri = 'mongodb+srv://tom:1Meta-Mesa1@cluster0.vsnlk.mongodb.net/todoapp?retryWrites=true&w=majority';
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 
 ///////////Render Mainpage/////////////
-app.get('/', (req, res)=>{
+app.get('/', async (req, res)=>{
 	if(req.session.user == undefined){
 		res.render('index', {todos: false, login: true})
 	}
 	else{
 		let username = req.session.user.name;
-
-		getAllTasks(username).then((allTasks)=>{
-			res.send(JSON.stringify(allTasks))
-		})
 		
+		const allTasks = await getAllTasks(username);
 		res.render('index', {todos: true, login: false, registration: false})
 	}
 })
 
 /////////User Login/////////////
-app.post('/login', (req, res)=>{
+app.post('/login', async (req, res)=>{
 	let user = req.body;
 
-	loginUser(user, req, res).catch(console.dir)
+	const user_from_db = await loginUser(user);
+	console.log(user_from_db)
+	if(user_from_db == null){
+		res.render('index', {todos: false, login: true, err_msg: "Username or Password incorrect."})	
+	}
+	else{
+		req.session.user = user_from_db;
+		console.log("user: " + user_from_db.name + " signed in.")
+		res.render('index', {todos: true, login: false})
+	}
 })
 
 //////////////Add New Task///////////////////////
-app.post('/addTask', upload.none(), (req, res)=>{
+app.post('/addTask', upload.none(), async (req, res)=>{
 	let task = req.body.task;
-	let username = req.session.user.name;
 	
-	addTask(task, username).then(()=>{
-		getAllTasks(username).then((allTasks)=>{
-			res.send(JSON.stringify(allTasks))
-		})
-	})
+	if(typeof req.session.user.name == 'undefined'){
+		res.redirect('/login')
+	}
+	else{
+		let username = req.session.user.name;
+				
+		await addTask(task, username)	
+		let allTasks = await getAllTasks(username);
+		console.log(allTasks)
+		res.send(JSON.stringify(allTasks))
+	}
 })
 
 //////Send Todos when index.ejs is send/////////
-app.get('/getTodos', (req, res)=>{
-	let name = req.session.user.name;
-	
-	getAllTasks(name).then((allTasks)=>{
+app.get('/getTodos', async (req, res)=>{
+	if(typeof req.session.user == undefined){
+		res.redirect('/login')
+	}
+	else{
+		let name = req.session.user.name;
+		let allTasks = await getAllTasks(name);
 		res.send(JSON.stringify(allTasks))
-	})
+	}
 })
 
 /////////////////Remove Task/////////////////
-app.post('/removeTask', (req, res)=>{
+app.post('/removeTask', async (req, res)=>{
 	let username = req.session.user.name;
 	let index = req.body.index;
 	
-	removeTask(username, index).then((result)=>{
-		console.log(result)
-		getAllTasks(username).then((allTasks)=>{
-			res.send(JSON.stringify(allTasks))
-		})
-	})
+	await removeTask(username, index)
+	let allTasks = await getAllTasks(username);
+	res.send(JSON.stringify(allTasks))
 })
 
 //////////////Sign Up User//////////////////
@@ -87,26 +98,20 @@ app.get('/registration', (req, res)=>{
 
 })
 
-app.post('/registration', (req, res)=>{
+app.post('/registration', async (req, res)=>{
 	let credentials = req.body;
-	let userFound = false;
 
-	findUser(credentials.name).then((result)=>{
-		if(result != undefined){
-			userFound = true;
-			res.render('index', {todos: false, login: false, registration: true, userExists: true})
-		}
-	})
-	/*
-
-	if(!userFound){
-		registrateUser(credentials)
-		addTaskDoc(credentials.name).then(()=>{
-			req.session.user = {name: credentials.name, password: credentials.password};
-			res.render('index', {todos: true, login: false, registration: false})		
-		})
+	const userFound = await findUser(credentials.name);
+	console.log(userFound)
+	if(userFound != null){
+		res.render('index', {todos: false, login: false, registration: true, userExists: true})
 	}
-*/
+	else{
+		await registrateUser(credentials)
+		await addTaskDoc(credentials.name)
+		req.session.user = {name: credentials.name, password: credentials.password};
+		res.render('index', {todos: true, login: false, registration: false})		
+	}
 })
 
 
@@ -119,17 +124,9 @@ async function loginUser(user, req, res){
 		await client.connect()
 		
 		let user_from_db = await client.db('todoapp').collection('users').findOne({'name': user.username, 'password': user.password});
-		if(user_from_db.name == undefined){
-			throw new userNotFound("user not found")
-		}
-		else{
-			req.session.user = user_from_db;
-			console.log("user: " + user_from_db.name + " signed in.")
-			res.render('index', {todos: true, login: false})
-		}
+		return user_from_db;
 	}
-	catch(userNotFound){
-		res.render('index', {todos: false, login: true, err_msg: userNotFound.message})
+	catch{
 	}
 	finally{
 		await client.close()
@@ -242,8 +239,7 @@ async function registrateUser(credentials){
 		const collection_user = db.collection('users');
 		const doc_newUser = {name: name, password: password};
 		
-		result = await collection_user.insertOne(doc_newUser)
-		return result;
+		await collection_user.insertOne(doc_newUser)
 	}
 	catch{
 	}
@@ -259,11 +255,11 @@ async function addTaskDoc(username){
 		const db = client.db('todoapp');
 		const collection_tasks = db.collection('tasks');
 		const doc_task = {name: username, tasks: []};
-
-		await collection_tasks.insertOne(doc_task)
-		return result;
+	
+		await collection_tasks.insertOne(doc_task)		
 	}
-	catch{
+	catch(err){
+		console.log(err)
 	}
 	finally{
 		await client.close()
